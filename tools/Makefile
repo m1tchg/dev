@@ -1,35 +1,50 @@
-## saves my favorite Pandoc options so I use the same commands in Vim and from the terminal
+# vim: set noexpandtab softtabstop=0:
+#
+# ## saves my favorite Pandoc options so I use the same commands in Vim and from the terminal
 
 RM = rm
 MAKEPRG = $(MAKE) --no-print-directory
 MAKEDBG = $(MAKE)
-PANDOCEXE = @pandoc.exe
-PANDOCDBG = pandoc.exe
-export PANDOCARGS
-TOC  = --standalone --table-of-contents
-CHECKLINKOPTS = --lua-filter=check-link-frags.lua  --quiet
-CHECKLINKNAMEOPTS = --lua-filter=check-link-frag-names.lua  --quiet
-REFLINKOPTS = --reference-links --reference-location=document
-PRINTEXTLINKS = --lua-filter=print-ext-links.lua
-PANDOCBASEOPTS = --wrap=none --atx-header
-PANDOC = $(PANDOCEXE) $(PANDOCBASEOPTS) $(PANDOCARGS)
-RSTOPTS = $(BASEFMTOUTOPTS)
-MARKDOWNOPTS = +raw_html-native_divs-implicit_figures$(BASEFMTOUTOPTS)+old_dashes-raw_tex
-TOMARKDOWN = markdown$(MARKDOWNOPTS)$(BASEFMTOUTOPTS)
-FROMMARKDOWN = markdown$(MARKDOWNOPTS)-smart
-RST = rst$(RSTOPTS)
-HTMLOPTS = +raw_html-raw_tex-native_divs
-HTML = html$(HTMLOPTS)$(BASEFMTOUTOPTS)
-HTML4 = html4$(HTMLOPTS)
+PANDOCEXE = @pandoc $(ARGS)
+PANDOCDBG = pandoc
+HTMLPROOFEREXE = C:\tools\ruby30\bin\htmlproofer.bat
+	export ARGS
+	TOCDEPTH = 2
+	TOC  = --standalone --table-of-contents --toc-depth=$(TOCDEPTH)
+	CHECKLINKOPTS = --lua-filter=check-link-frags.lua --lua-filter=check-link-frag-names.lua --quiet
+	CHECKLINKIDOPTS = --lua-filter=check-link-frags.lua  --quiet
+	CHECKLINKNAMEOPTS = --lua-filter=check-link-frag-names.lua	--quiet
+	REFLINKOPTS = --reference-links --reference-location=document
+	PRINTEXTLINKS = --lua-filter=print-ext-links.lua
+	PANDOCBASEOPTS = --markdown-headings=atx --wrap=preserve --tab-stop=2 --preserve-tabs=false
+	PANDOC = $(PANDOCEXE) $(PANDOCBASEOPTS)
+	TOMARKDOWN = markdown$(MARKDOWNOPTS)
+	FROMMARKDOWN = markdown$(MARKDOWNOPTS)-smart-tex_math_dollars-tex_math_single_backslash-tex_math_double_backslash-markdown_in_html_blocks
+	RST = rst$(RSTOPTS)
+	BASEFMTOPTS = +raw_html-native_divs-implicit_figures+old_dashes-raw_tex-tex_math_dollars-tex_math_single_backslash-tex_math_double_backslash-markdown_in_html_blocks
+
+TABLEOPTS = -simple_tables-multiline_tables+pipe_tables+grid_tables
+GRIDTABLEOPTS = -simple_tables-multiline_tables-pipe_tables+grid_tables
+NOTABLEOPTS = -simple_tables-multiline_tables-pipe_tables-grid_tables
+MARKDOWNOPTS = +raw_html-native_divs-implicit_figures+old_dashes-raw_tex-tex_math_dollars$(NOTABLEOPTS)
+HTMLOPTS = +raw_html-native_divs-tex_math_dollars-raw_tex-tex_math_dollars-tex_math_single_backslash-tex_math_double_backslash
+
+HTML = html$(HTMLOPTS)
+XHTML = html4$(HTMLOPTS)-smart
 NOTABLEOPTS = -simple_tables-multiline_tables-grid_tables-pipe_tables
-TIDYPANDOCBASEOPTS = -bare -quiet -utf8 --clean no --logical-emphasis yes --show-warnings 0 --tidy-mark no --quote-ampersand no --word-2000 yes -wrap 0 --drop-empty-paras no --drop-empty-elements no --indent no --vertical-space no --preserve-entities yes
+##TIDYCUSTOMTAGS = --custom-tags blocklevel --new-blocklevel-tags h:propertyname
+TIDYBASEOPTS = -bare -quiet -utf8 --clean no --logical-emphasis yes --show-errors 2 --gnu-emacs --show-warnings 0 --tidy-mark no --quote-ampersand no --word-2000 yes -wrap 0 --drop-empty-paras no --drop-empty-elements no --indent no --vertical-space no --preserve-entities yes --literal-attributes true --lower-literals false --show-body-only auto
+TIDYXMLOPTS = -xml --input-xml yes --indent auto --doctype loose --add-xml-space
 TIDYXHTMLOPTS = --output-xhtml yes --doctype loose
-TIDYPRG = @tidy.exe
-TIDY = $(TIDYPRG) $(TIDYPANDOCBASEOPTS)
+TIDYHTMLOPTSOLD = -q -utf8 --show-errors 2 --tidy-mark no --quote-ampersand no --word-2000 yes -wrap 0 -xml
+TIDYEXE = @tidy.exe
+TIDY = $(TIDYEXE) $(TIDYBASEOPTS)
+HTMLPROOFER = $(HTMLPROOFEREXE) --empty-alt-ignore --check-external-hash
 
 export TMP = _md
 export TO = md
 export FROM = html
+export INFMT = markdown
 export PANDOCARGS
 
 export TOSRC = $(wildcard *.$(TO))
@@ -39,18 +54,20 @@ GEN_FILES=\
 
 ## All markdown files in the working directory
 
-export SRC = $(wildcard *.$(TMP))
+export SRC = $(wildcard *.$(FROM))
 HTMLSRC = $(wildcard *.html)
 MDSRC = $(wildcard *.md)
 
 TOHTML=$(SRC:.$(TMP)=.html)
 FROMMD=$(MDSRC:.$(MEXT)=._md)
 
+.SILENT: _rehtml
+
 %.html: %.md
 	cat $< |\
 		$(MAKEPRG) _tohtml |\
 		$(MAKEPRG) _xhtml > $@
-		-htmlproofer.bat --check-external-hash $@
+	$(HTMLPROOFER) $@
 
 %.md: %.html
 	cat $< |\
@@ -67,30 +84,50 @@ FROMMD=$(MDSRC:.$(MEXT)=._md)
 %._md: %.md
 	cat $< |\
 		$(MAKEPRG) _tomd > $@
+	cat $@ |\
+		$(MAKEPRG) _checklinks
 
 pandoc:
 	$(PANDOC) $(PANDOCARGS)
 
 _fromhtml:
-	$(PANDOC) -f $(HTML) -t $(TOMARKDOWN)$(NOTABLEOPTS) -o -
+	$(PANDOC) -f $(HTML) -t $(TOMARKDOWN) -o -
 
 _frommd:
 	$(PANDOC) -f $(FROMMARKDOWN) -t "$(RST)" -o -
 
 _tohtml:
-	$(PANDOC) -f $(FROMMARKDOWN) -t $(HTML) -o - 
+	$(PANDOC) -f $(FROMMARKDOWN) -t $(HTML) -o -
 
 _toxhtml:
-		$(PANDOC) -f $(FROMMARKDOWN) -t $(HTML4) -o - 
+	$(PANDOC) -f $(FROMMARKDOWN) -t $(XHTML) -o -
 
 _torst:
 	$(PANDOC) -f $(FROMMARKDOWN) -t "$(RST)" -o -
 
 _tomd:
-	$(PANDOC) $(PANDOCBASEOPTS) -t "$(TOMARKDOWN)" -o -
+	$(PANDOC) -f $(FROMMARKDOWN) -t "$(TOMARKDOWN)" -o -
 
 _toplain:
-	$(PANDOC) $(PANDOCBASEOPTS) -t plain -f "$(TOMARKDOWN)" -o -
+	$(PANDOC) -t plain -f "$(TOMARKDOWN)" -o -
+
+_tostandalone:
+	$(PANDOC) -s -f $(FROMMARKDOWN) -t $(TO) -o -
+
+_toc:
+	$(PANDOC) $(TOC) $(REFLINKOPTS) -f $(FROMMARKDOWN) -t $(TOMARKDOWN) -o -
+
+_tabletocsv:
+	$(PANDOC) -F pantable2csv -f $(HTML) -t $(TOMARKDOWN) -o -
+
+_csvtotable:
+	$(PANDOC) -F pantable -f $(FROMMARKDOWN) -t $(HTML) -o -
+
+_togridtable:
+	$(PANDOC) -f $(HTML) -t $(TOMARKDOWN)$(GRIDTABLEOPTS) -o -
+
+_fromgridtable:
+	$(PANDOC) -f markdown$(MARKDOWNOPTS)$(GRIDTABLEOPTS) -t $(HTML) -o -
 
 toplain: $(SRC:.md=._md)
 	cat $^ |\
@@ -103,16 +140,6 @@ todocx:
 fromdocx:
 	$(PANDOCDBG) $(PANDOCBASEOPTS) -t "$(TOMARKDOWN)" -o "$(SRC:.docx=.md)"  "$(SRC)"
 
-reflinks: $(SRC:.md=._md)
-	cat $^ |\
-		$(MAKEPRG) _reflinks > $(SRC)
-
-_reflinks:
-	$(PANDOC) $(PANDOCBASEOPTS) $(REFLINKOPTS) -f $(FROMMARKDOWN) -t $(TOMARKDOWN) -o -
-
-_toc:
-	$(PANDOC) $(PANDOCBASEOPTS) $(TOC) $(REFLINKOPTS) -f $(FROMMARKDOWN) -t $(TOMARKDOWN) -o -
-
 toc: $(SRC:.md=._md)
 	cat $^ |\
 		$(MAKEPRG) _toc > $(SRC)
@@ -122,27 +149,42 @@ striphids: $(SRC:.md=.$(TMP))
 	cat $(SRC) |\
 		$(MAKEPRG) _striphids |\
 		$(MAKEPRG) _reflinks > $(SRC)
-		$(MAKEPRG) clean FROMSRC=$(SRC) FROM=md
+	$(MAKEPRG) clean FROMSRC=$(SRC) FROM=md
+
+_stripcss:
+	$(PANDOC) --lua-filter=strip-css.lua -f $(FROMMARKDOWN) -t $(HTML) -o -
 
 _striphids:
-	$(PANDOC) $(PANDOCBASEOPTS) -f $(FROMMARKDOWN) -t $(TOMARKDOWN)-header_attributes -o -
-
-__pandoc_xhtml:
-	$(PANDOC) -s -f html$(HTMLOPTS) -t html4-smart -o -
+	$(PANDOC) --lua-filter=regen-header-ids.lua -f $(FROMMARKDOWN) -t $(TOMARKDOWN) -o -
 
 _xhtml:
-	-$(TIDY) $(TIDYXHTMLOPTS) || exit 0
+	$(TIDY) $(TIDYXHTMLOPTS) ||:
+
+_tidyxhtml:
+	$(TIDY) $(TIDYXMLOPTS) $(TIDYXHTMLOPTS) ||:
+
+_rehtml:
+	$(MAKEPRG) _fromhtml PANDOCARGS=--wrap=none |\
+		$(MAKEPRG) _tohtml PANDOCARGS=--wrap=preserve
+
+_xml:
+	@xmllint --recover -
+
+_xmlformat:
+	@xmllint --format pretty --recover -
+
+_tidyxml:
+	$(TIDY) $(TIDYXMLOPTS) ||:
 
 _html:
-	echo "$(TIDY)"
-	-$(TIDY) || exit 0
+	-$(TIDY) ||:
 
 clean:
-	-$(RM) $(GEN_FILES)
+	-$(RM) $(FROMSRC:.$(FROM)=.$(TMP))
 
-fromhtml: $(HTMLSRC:.html=.$(TO))
+fromhtml: $(SRC:.html=.$(TO))
 
-md: $(FROMSRC:.$(FROM)=.md)
+md: $(SRC:.$(FROM)=.md)
 
 # pandoc: $(FROMSRC:.$(FROM)=$(TO))
 
@@ -151,7 +193,7 @@ md: $(FROMSRC:.$(FROM)=.md)
 wordcount:
 	$(PANDOC) --lua-filter wordcount.lua $(git diff-tree --no-commit-id --name-only --relative -r $(REVFROM)..$(REVTO))
 
-checkrstlinks: $(HTMLSRC:.html=.rst)
+checkrstlinks: $(SRC:.html=.rst)
 	cat > conf.py <<EOF \
 		# Configuration file for the Sphinx documentation builder. \
 		# \
@@ -196,7 +238,7 @@ checkrstlinks: $(HTMLSRC:.html=.rst)
 		\
 		# -- Options for HTML output ------------------------------------------------- \
 		\
-		# The theme to use for HTML and HTML Help pages.  See the documentation for \
+		# The theme to use for HTML and HTML Help pages.	See the documentation for \
 		# a list of builtin themes. \
 		# \
 		html_theme = 'alabaster' \
@@ -207,16 +249,40 @@ checkrstlinks: $(HTMLSRC:.html=.rst)
 		html_static_path = ['_static'] EOF
 	sphinx-build -b linkcheck . /dev/null $<
 
-#	$(PANDOC) $(CHECKLINKFRAGS) -f html $(wildcard *.html) 1>/dev/null
+# $(PANDOC) $(CHECKLINKFRAGS) -f html $(wildcard *.html) 1>/dev/null
+_tmp:
+	mkdir /tmp
+
+htmlproofer:
+	-$(HTMLPROOFER)
+
+_htmlproofer:
+	@cat > out.html
+	@$(HTMLPROOFER) out.html ||:
+	@rm out.html
 
 checklinks:
+	$(MAKEPRG) $(SRC:.$(FROM)=.$(TO))
+	echo $(SRC)
+	cat $(SRC:.$(FROM)=.$(TO)) |\
+		$(MAKEPRG) _striphids \|
+	$(MAKEPRG) _checklinks
+
+# Use PANDOCARGS to specify format -- default is markdown"
+
+_checklinks:
+	$(PANDOC) $(PANDOCBASEOPTS) --lua-filter=check-link-frags-nogrep.lua --lua-filter=check-link-frag-names-nogrep.lua --quiet -o - 1>/dev/null
+
+_xcheckstriplinks: $(FROMSRC:.html=._md)
+
+checklinknames:
 	$(PANDOC) $(CHECKLINKNAMEOPTS) $(SRC) 1>/dev/null
-	htmlproofer.bat --check-external-hash $(SRC)
+
 
 _xcheckstriplinks: $(TOSRC:.html=._md)
 	cat $^ |\
 		$(MAKEPRG) _striphids > _fromsrc._md
-	#	$(PANDOC) $(PANDOCBASEOPTS) $(CHECKLINKOPTS) _fromsrc.md -o - 1>/dev/null
+	# $(PANDOC) $(CHECKLINKOPTS) _fromsrc.md -o - 1>/dev/null
 
 
 _linkreport:
@@ -226,3 +292,5 @@ Makefile:
 	cp C:\users\mitch\dotfiles\dev\tools\Makefile .
 
 
+_rg:
+	rg --smart-case --with-filename --hidden --no-heading -S --vimgrep --no-ignore-vcs --ignore-file $(HOME)/dotfiles/.rgignore -e '$(QUERY)'
