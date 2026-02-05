@@ -1,8 +1,7 @@
 # vim: set noexpandtab softtabstop=0:
 #
-# ## saves my favorite Pandoc options so I use the same commands in Vim and from the terminal
+# saves my favorite CLI options so I use the same commands in Vim and from the terminal
 
-RM = rm
 MAKEPRG = $(MAKE) -f $(HOME)/tools/Makefile --no-print-directory
 MAKEDBG = $(MAKE) -f $(HOME)/tools/Makefile
 
@@ -11,7 +10,7 @@ TOCDEPTH = 2
 TOC  = --standalone --table-of-contents --toc-depth=$(TOCDEPTH)
 CHECKLINKOPTS = --lua-filter=check-link-frags.lua --lua-filter=check-link-frag-names.lua --quiet
 CHECKLINKIDOPTS = --lua-filter=check-link-frags.lua  --quiet
-CHECKLINKNAMEOPTS = --lua-filter=check-link-frag-names.lua	--quiet
+CHECKLINKNAMEOPTS = --lua-filter=check-link-frag-names.lua --quiet
 REFLINKOPTS = --reference-links --reference-location=document
 PRINTEXTLINKS = --lua-filter=print-ext-links.lua
 PANDOCBASEOPTS = --markdown-headings=atx --wrap=preserve --tab-stop=2
@@ -34,25 +33,15 @@ TIDYXHTMLOPTS = --output-xhtml yes --doctype loose
 TIDYHTMLOPTSOLD = -q -utf8 --show-errors 2 --tidy-mark no --quote-ampersand no --word-2000 yes -wrap 0 -xml
 TIDY = @tidy $(TIDYBASEOPTS)
 
-export TMP = _md
+export PANDOCOPTS
 export TO = md
-export FROM = html
-export INFMT = markdown
-export PANDOCARGS
+export FROM = md
+export TMP = _md
 
-export TOSRC = $(wildcard *.$(TO))
-export FROMSRC := $(wildcard *.$(FROM))
-GEN_FILES=\
-					$(FROMSRC:.$(FROM)=.$(TMP))
-
-## All markdown files in the working directory
-
+## All files in the working directory
 export SRC = $(wildcard *.$(FROM))
-HTMLSRC = $(wildcard *.html)
-MDSRC = $(wildcard *.md)
-
-TOHTML=$(SRC:.$(TMP)=.html)
-FROMMD=$(MDSRC:.$(MEXT)=._md)
+GEN_FILES=\
+					$(SRC:.$(FROM)=.$(TO))
 
 .SILENT: _rehtml
 
@@ -141,7 +130,7 @@ striphids: $(SRC:.md=.$(TMP))
 	cat $(SRC) |\
 		$(MAKEPRG) _striphids |\
 		$(MAKEPRG) _reflinks > $(SRC)
-	$(MAKEPRG) clean FROMSRC=$(SRC) FROM=md
+	$(MAKEPRG) clean FROM=md
 
 reflinks: $(SRC:.md=._md)
 	cat $^ |\
@@ -163,12 +152,12 @@ _tidyxhtml:
 	$(TIDY) $(TIDYXMLOPTS) $(TIDYXHTMLOPTS) ||:
 
 _rehtml:
-	$(MAKEPRG) _fromhtml PANDOCARGS=--wrap=none |\
-		$(MAKEPRG) _tohtml PANDOCARGS=--wrap=preserve
+	$(MAKEPRG) _fromhtml PANDOCOPTS=--wrap=none |\
+		$(MAKEPRG) _tohtml PANDOCOPTS=--wrap=preserve
 
 _repandoc:
-	$(MAKEPRG) _tohtml PANDOCARGS=--wrap=preserve |\
-		$(MAKEPRG) _fromhtml PANDOCARGS=--wrap=none
+	$(MAKEPRG) _tohtml PANDOCOPTS=--wrap=preserve |\
+		$(MAKEPRG) _fromhtml PANDOCOPTS=--wrap=none
 
 _xml:
 	@xmllint --recover -
@@ -183,55 +172,34 @@ _html:
 	-$(TIDY) ||:
 
 clean:
-	-$(RM) $(FROMSRC:.$(FROM)=.$(TMP))
+	-rm $(SRC:.$(FROM)=.$(TMP))
 
-
-# pandoc: $(FROMSRC:.$(FROM)=$(TO))
-
-##	$(MAKEPRG) clean FROM=html
 
 wordcount:
 	$(PANDOC) --lua-filter wordcount.lua $(git diff-tree --no-commit-id --name-only --relative -r $(REVFROM)..$(REVTO))
 
-# $(PANDOC) $(CHECKLINKFRAGS) -f html $(wildcard *.html) 1>/dev/null
-_tmp:
-	mkdir /tmp
-
 _htmltest:
 	@cat > out.html
-@$(HTMLTEST) out.html ||:
+	@$(HTMLTEST) out.html ||:
 	@rm out.html
 
-checklinksfrag:
+checklinks:
 	$(MAKEPRG) $(SRC:.$(FROM)=.$(TO))
-	echo $(SRC)
-	cat $(SRC:.$(FROM)=.$(TO)) |\
-		$(MAKEPRG) _striphids \|
-	$(MAKEPRG) _checklinkfrags
+	markdown-link-check -p -q $(SRC:.$(FROM)=.$(TO))
 
-# Use PANDOCARGS to specify format -- default is markdown"
+_checklinks:
+	@cat > out.md
+	@markdown-link-check -q out.md ||:
+	@rm out.md
 
 _checklinkfrags:
-	$(PANDOC) --lua-filter=check-link-frags.lua --quiet -o - 
-
-_xcheckstriplinks: $(FROMSRC:.html=._md)
+	$(PANDOC) --lua-filter=check-link-frags.lua --quiet -o -
 
 checklinknames:
 	$(PANDOC) $(CHECKLINKNAMEOPTS) $(SRC) 1>/dev/null
 
-
-_xcheckstriplinks: $(TOSRC:.html=._md)
-	cat $^ |\
-		$(MAKEPRG) _striphids > _fromsrc._md
-	# $(PANDOC) $(CHECKLINKOPTS) _fromsrc.md -o - 1>/dev/null
-
-
 _linkreport:
 	bash -c "$(PANDOCDBG) $(PANDOCBASEOPTS) $(CHECKLINKOPTS) $(CHECKLINKNAMEGREPOPTS) $(SRC) -o - 1>/dev/null"
-
-Makefile:
-	cp C:\users\mitch\dotfiles\dev\tools\Makefile .
-
 
 _rg:
 	rg --smart-case --with-filename --hidden --no-heading -S --vimgrep --no-ignore-vcs --ignore-file $(HOME)/dotfiles/.rgignore -e '$(QUERY)'

@@ -8,10 +8,10 @@ I store nifty commands in a Makefile. Somewhere I'm hunched over my HHKB, checki
 make checklinks SRC=README.md
 ```
 
-Convert Markdown to docx, and more.
+Convert Markdown to docx.
 
 ``` bash
-make README.docx
+make README.docx 
 ```
 
 Convert Markdown to HTML in Neovim.
@@ -20,8 +20,8 @@ Convert Markdown to HTML in Neovim.
 %!make _tohtml
 ```
 
-Check the current buffer's links in Neovim. See the report in the quickfix list.
+Check Markdown links in the current Neovim buffer. See the report in the quickfix list.
 
 ``` vim
-%AsyncRun make _checklinkfrags
+%AsyncRun make _checklinks
 ```
