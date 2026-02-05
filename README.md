@@ -3,6 +3,7 @@ Contains projects, snippets, dependencies. Slices of the dotfiles and libs you n
 ## Makefile
 
 I store nifty commands in a Makefile. Somewhere I'm hunched over my HHKB, checking links with my Makefile target and my custom Pandoc Lua filter.
+
 ``` bash
 make checklinks SRC=README.md
 ```
@@ -22,5 +23,5 @@ Convert Markdown to HTML in Neovim.
 Check the current buffer's links in Neovim. See the report in the quickfix list.
 
 ``` vim
-%AsyncRun make _checklinks
+%AsyncRun make _checklinkfrags
 ```

@@ -1,0 +1,4 @@
+markdown-headings: atx
+wrap: preserve
+tab-stop: 2
+preserve-tabs: false
