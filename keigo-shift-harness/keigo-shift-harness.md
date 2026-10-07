@@ -2,7 +2,7 @@ A harness in a docs-as-code workflow might help an agent add tags or suggest edi
 
 ## Introducing the series
 
-Studying Japanese and skilling up with AI at the same time? Leave your cares behind in a low-code flow state as you:
+Read manga and write Python while you study Japanese:
 
 - Learn _keigo_ by reading business manga. 
 - Translate manga as you read with your phone and OCR tools.
@@ -52,7 +52,7 @@ Loop engineering design patterns map onto this project one to one:
 
 "I'm working on my portfolio, freelancing gig to gig ..." I grind out from a neutral distance. There is no there there.
 
-"Interesting!" She shifts into my register. Now we're in a groove coworkers might use.
+"Interesting!" She shifts into my register. Now we're tracking a groove coworkers might use.
 
 "What are you working on?"
 
@@ -85,17 +85,17 @@ Mercari is Japan's homegrown Craigslist. Sellers and buyers wind through a dialo
 
 I introduce myself with humble language that matches the distance. "Thanks for the shipping notification. I'll be sure to leave a review."
 
-"Don't mention it," the seller replies. She matches the humble language. You'd use this register when talking with a client. "It helps a lot," she adds, but now in a neutral register that's less stiff. We're still *soto*, out-group. But, it's an expression of personal gratitude.
+"Don't mention it," the seller replies. She matches the humble language. You'd use this register when talking with a client. "It helps a lot," she adds. But she use a neutral register that's less stiff. We're still *soto*, out-group. But the shift leaves a wake that adds a dash of warmth. 
 
-Downshift. I take some quick notes on what I can observe, then pass those to the agent to analyze the mechanics.
+I take some quick notes on what I can observe, then pass those to the agent to analyze the mechanics I can't see.
 
 ## Designing the schema
 
 There might be multiple shifts in the same scene. To reflect this, a two-level schema separates scene fields and card fields.
 
-The cards are Cloze cards, where you fill in the blank. The front of the card shows the `before` and `after` sentences. In the `after` sentence, I guess the blanked-out keigo `form` that changed.
+The cards are Cloze cards, where you fill in the blank. The front of the card shows the `before` and `after` sentences. I fill the blank in the `after` sentence with the keigo `form` that changed.
 
-The agent identifies the `form`. It also fills the rest of the fields. These are the agent's notes. The agent uses these to self-correct.
+The agent identifies the `form`. It also fills the rest of the fields, like Ide's wakimae axes. These are the agent's notes. The agent uses these to self-correct.
 
 The dataset looks like this.
 
@@ -121,7 +121,7 @@ The dataset looks like this.
 
 ## Making flash cards that prepare you for immersion
 
-You can learn everything you need from immersion. That's the theory of the JJ method. Autumn Skerritt [introduces](https://skerritt.blog/jj-method-for-japanese/) how to write good flash cards that follow the JJ method. In it, she adds that flash cards prep your brain to recognize forms during immersion.
+You can learn everything you need from immersion. That's the theory of the JJ method. Autumn Skerritt [introduces](https://skerritt.blog/jj-method-for-japanese/) how to follow the JJ method to make better flash cards. She explains that flash cards prep your brain to recognize forms during immersion.
 
 Bill VanPatten's [Input Processing theory](https://en.wikipedia.org/wiki/Input_Processing_theory) explains why you need to train your brain. Your brain ignores keigo forms because they're redundant with the context.
 
