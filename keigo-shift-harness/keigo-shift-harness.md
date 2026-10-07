@@ -1,81 +1,100 @@
-I reworked a docs-as-code harness to mine better Japanese flash cards. A harness in a docs-as-code workflow might help an agent fill content gaps or add tags. Here, it's filling fields on a flash card to help me study Japanese.
+I reworked a docs-as-code agent harness to mine better Japanese flash cards. A harness in a docs-as-code workflow might help an agent add tags or suggest edits like the [Hemingway app](https://hemingwayapp.com/). My agent fills fields on a flash card to help me study Japanese. 
+
+## Introducing the series
+
+This article series has some techy creative problem solving for everyone:
+
+- Learn _keigo_ by reading business manga. 
+- Translate manga as you read with your phone and OCR tools.
+- Find the right flash card tool for you. Get started in Anki, Obsidian, or Notion.
+- Make effective flash cards.
+- Build a harness for content governance.
+
+I have to do the harness before the manga. But feel free to jump around the sections:
+
+- [Design patterns reworked](#design%20patterns%20reworked)
+- [Mining keigo shifts from real life](#mining%20keigo%20shifts%20from%20real%20life)
+- [Mining flash cards from business manga](#mining%20flash%20cards%20from%20business%20manga)
+- [The first card](#the%20first%20card)
+- [The schema](#the%20schema)
+- [Priming your recognition for immersion learning](#priming%20your%20recognition%20for%20immersion%20learning)
+
+## Keigo? Business manga?
+
+Keigo is the grammar that you use to speak with humility about yourself and honor others. Business manga explores workplace drama. It might inspire your investment strategy. Keigo shifts are part of the fun. 
+
+This article series uses _Angel Bank: Dragon Zakura Gaiden_. A recruiter named Ebisawa coaches 32-year-old English teacher Ino Mamako through becoming a recruiter. 
 
 ## Design patterns reworked
 
 Loop engineering design patterns map onto this project one to one:
 
 - **Schema design**
-  The schema tells the agent what done looks like. It's the contract.
-
-- **Signal design**
-  The agent proposes content edits based on an analytics signal. In docs as code, an agent might identify content gaps based on a signal like support ticket volume. 
-
-  Analytics signals for flash cards look like a difficulty score, measuring how hard is it for me to consistently remember a card. These metrics come from the FSRS spaced repetition algorithm.
+  The schema is the contract for the content that the agent should output. 
 
 - **Loop architecture**
-  The LLM self-corrects based on the FSRS performance data. The signal becomes the degradation condition of a feedback loop.
+  One loop iteration passes through the steps of signal → edit → gate → re-measure.
 
-  The loop's stop condition is a re-measure step. The agent's only done when the signal says the edit worked.
+  The loop's stop condition is the re-measure step. The agent's only done when the signal says the edit worked.
+
+- **Signal design**
+  The agent proposes edits based on an analytics signal. In a docs-as-code environment, an agent might identify content gaps based on a signal like support ticket volume.
+
+  The analytics signal for a flash card is the difficulty score. Is it hard for me to remember this card? This metric comes from the FSRS spaced repetition algorithm. The LLM self-corrects based on the FSRS performance data.
 
 - **Gate design**
+  I'm still learning keigo, so I can't evaluate an edit. What form does the human gate take when the human can't verify the agent's work? 
 
-  This project made it explicit that human gates can break. Since I'm still learning Japanese, I can't evaluate an edit. What form does the human gate take when the human can't verify the agent's work? 
+## Mining keigo shifts from real life
 
-  In docs-as-code workflows, gates are designed around the expectation that the human is the domain expert. Agent and human might drop into a maker/checker pattern.
+"What are you working on?" she asks. We just met at a Python meetup. She gauges a polite distance, selecting humble language.
 
-  Wearing these n00b glasses, I learned to look for gate design patterns like how the gate degrades. The less domain knowledge the human has about the agent's output, the more the gate shifts from explicit to behavioral (the FSRS retrieval signal).
-  
-  Basically, the FSRS difficulty is the gate. When the FSRS difficulty for a batch, like the cards from an episode, stabilizes, then I'll do a Git merge that accepts or reject's the agent's edits in an asynchronous batch.
-
-
-## Mining honorific shifts from real life
-
-"What are you working on?" someone I just met at the Python meetup humbly inquires, selecting honorifics that lower themselves, gauging a polite distance. I grind out something from a neutral distance. There is no there there. "I'm working on my portfolio, freelancing gig to gig ..."
+"I'm working on my portfolio, freelancing gig to gig ..." I grind out from a neutral distance. There is no there there. 
 
 "Interesting!" She shifts into my register. Now we're in a groove coworkers might use.
 
 "What are you working on?"
 
-"I'm building out a content team to introduce our new automotive vision AI product." Now we're bubbling along as friends. Well, she is. I'm trapped inside my polite-as-neutral space suit.
+"I'm building out a content team to introduce our new chip for automotive vision AI." Now we're bubbling along as friends. Well, she is. I'm trapped inside my polite-as-neutral space suit.
 
 We exchange business cards, each using humble language. There's a warmth to tracking the set phrases, stages together.
 
-It's not a volitional, performative politeness. It's [*wakimae*](http://www.sachikoide.com/OntheNotionofWakimae.pdf), the act of selecting honorific grammatical forms (*keigo*) to establish Tachi-ichi (立ち位置), "where one stands."
-To place yourself, you need to know the ground you're standing on, the axes along which you index your Tachi-ichi. 
+It's not a volitional, performative politeness. It's [*wakimae*](http://www.sachikoide.com/OntheNotionofWakimae.pdf). Wakimae is a noun. You use it like, "That person has wakimae." It's the observance of social norms.
 
-Some textbooks boil it down to two, humble and honorific language. But you sound a little 2D when everyone else is cooking in five dimensions. Sachiko Ide enumerates the axes along which you assess your Tachi-ichi:
+You can observe wakimae in how a speaker selects honorific grammar. 
+Some textbooks give you two levers: humble and honorific language. Up, down. But native speakers cook up, index, their sense of place in five-dimensional space.
+
+Sachiko Ide lists the five axes:
 
 - Status
 - Age
 - Power
-- Solidarity (familiarity)
-- Formality (of occasion or topic)
+- Solidarity/familiarity
+- Formality of occasion or topic
 
 ## Mining flash cards from business manga
 
-I leave the meetup early. It's night out. Akihabara seems suddenly deserted. Lost without a guide, I wander into a used bookstore, pick through bargain bins of manga, and uncover Ebisawa, the recruiter from *Angel Bank: Dragon Zakura Gaiden*, who coaches 32-year-old English teacher Ino Mamako through becoming a recruiter. A *keigo* shift master. "Let's go!" he seems to say.
+I leave the meetup early. It's night out. Akihabara is empty. I wander into a used bookstore. I pick through bargain bins of manga. Twenty minutes later, I pluck out the recruiters Ebisawa and Ino on the cover of _Angel Bank_.
 
-## The first card
+## Mining the first card
 
-I buy a few missing volumes online, through Mercari. Chatting with the seller gives me my first keigo shift card. 
+I buy a few missing volumes online, through Mercari. Chatting with the seller gives me my first keigo shift card.
 
-Mercari is Japan's homegrown Craigslist; it connects to Japanese banks and domestic shipping. It also channels sellers and buyers through a dialogue of *keigo* shifts at each step of the transaction. What you'd expect.
+Mercari is Japan's homegrown Craigslist. Sellers and buyers wind through a dialogue of keigo shifts at each step of the transaction. 
 
-Buying the _Angel Bank_ volume starts the dialogue. The seller starts out formal, that is, humble. "I'd be grateful if you left a review."
+I introduce myself with humble language that matches the distance. "Thanks for the shipping notification. I'll be sure to leave a review."
 
-I introduce myself with humble language that matches the distance, "Thanks for the shipping notification, I'll be sure to leave a review." 
+"Don't mention it," the seller replies. She matches the humble language. You'd use this register when talking with a client. "It helps a lot," she adds, but now in a neutral register that's less stiff. We're still *soto*, out-group. But, it's an expression of personal gratitude.
 
-"Don't mention it," the seller replies, in the same formal-humble register, the humble language you'd use with a client. "It helps a lot," she adds, but now in a neutral register that's less stiff. We're not suddenly close friends, in the same in-group. We're still _soto_, out-group. But, it's an expression of personal gratitude.
+Downshift. I take some quick notes on what I can observe, then pass those to the agent to analyze the mechanics.
 
-Boom. I recognize the shift, take some quick notes on what I can observe, then pass those to the agent to analyze the effect and generate a card.   
+## Designing the schema
 
-The agent also fills fields that don't go on the card but help it continuously improve.
+There might be multiple shifts in the same scene. To reflect this, a two-level schema separates scene fields and card fields. 
 
-## The schema
+The cards are Cloze cards, where you fill in the blank. The front of the card shows the `before` and `after` sentences. In the `after` sentence, I guess the blanked-out keigo `form` that changed.
 
-A two-level schema separates scene fields and card fields. Some of the schema structures the flash card, the fields that go on the front and back. Other fields don't go on the card but help the agent track the keigo analysis that drive its revisions.
-
-Another way to slice the schema: The agent fills the analytical-level fields, and I just fill the observational fields. I can only verify fields at the observational level, since I only know the grammar of keigo; I'm still learning the analysis. 
+The agent identifies the `form`. It also fills the rest of the fields. These are the agent's notes. The agent uses these to self-correct.
 
 The dataset looks like this.
 
@@ -90,8 +109,8 @@ The dataset looks like this.
       "delta": "Buyer volunteers to leave a review. 発送のご連絡ありがとうございます。届きましたら受取評価をいたします。",
       "before": "Seller's request for a review: 到着しましたら、大変お手数ですが、受取評価して頂けますと助かります。よろしくお願いします。",
       "after": "Seller's thanks: とんでもございません。受取評価、助かります。引き続き、よろしくお願いします。",
-      "axis": ["solidarity"],
       "form": "助かります",
+      "axis": ["solidarity"],
       "function": "indexes distance reduced within soto register.",
       "mode": "indexical"
     }    
@@ -99,16 +118,13 @@ The dataset looks like this.
 }
 ```
 
-The agent fills `axis`, `form`, `function`, and `mode`.
 
-## Priming your recognition for immersion learning
+## Making flash cards that prepare you for immersion
 
-I'm learning keigo analysis from the agent as well as the cards. As I get better at recognizing the necessary `form` to fill the blank, my FSRS scores will improve. But I'm also reviewing the agent's proposed edits. As I read the agent's analysis, I'm priming my attention to recognize the parameters of re-indexing events at the next meetup.
+You can learn everything you need from immersion. That's the theory of the JJ method. Autumn Skerritt [introduces](https://skerritt.blog/jj-method-for-japanese/) how to write good flash cards that follow the JJ method. In it, she adds that flash cards prep your brain to recognize forms during immersion. 
 
-You can learn everything you need from immersion, as Autumn Skerritt summarizes in her overview of the [JJ method](https://skerritt.blog/jj-method-for-japanese/). She adds that flash cards prime your brain to recognize forms during immersion. VanPatten, the linguist who co-created Structured Input, helped me thread these together: because you can pick up everything you need from context, your brain sees the morphemes you need to study as redundant with the context. So your brain ignores them.
+Bill VanPatten's [Input Processing theory](https://en.wikipedia.org/wiki/Input_Processing_theory) explains why you need to train your brain. Your brain ignores keigo forms because they're redundant with the context. 
 
-In the Mercari example, the blank on the front of the card can only be filled by 助かります (Tasukarimasu, "It's helpful"), that specific verb, that specific masu form. ありがとうございます (Arigatou-gozaimasu, "Thank you very much"), no. 嬉しい (Hoshii, "I'd like that"), no.
+VanPatten's non-redundancy principle helps you write better flash cards. Remove hints from the front of the card so your brain can't cheat.
 
-Thankfully the agent is an expert Japanese linguist who can nail those cards-with-atomicity all day long.
-
-We'll hook up the harness in part two. Check back in sometime.
+How do you make sure your flash cards drill on keigo and nothing else? We'll explore patterns that make good flash cards in a later article.
