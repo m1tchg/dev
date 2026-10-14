@@ -1,3 +1,5 @@
+# I reworked a docs-as-code harness to study Japanese
+
 A harness in a docs-as-code workflow might help an agent add tags or suggest edits, like the [Hemingway app](https://hemingwayapp.com/). I reworked a docs-as-code agent harness to mine better Japanese flash cards. 
 
 ## Introducing the series
@@ -60,7 +62,7 @@ Loop engineering design patterns map onto this project one to one:
 
 We exchange business cards, each using humble language. There's a warmth to tracking the set phrases, stages together.
 
-It's not a volitional, performative politeness. It's [*wakimae*](http://www.sachikoide.com/OntheNotionofWakimae.pdf). Wakimae is a noun. You use it like, "That person has wakimae." It's the observance of social norms.
+It's [*wakimae*](http://www.sachikoide.com/OntheNotionofWakimae.pdf). Wakimae is a noun. You use it like, "That person has wakimae." 
 
 You can observe wakimae in how a speaker selects honorific grammar.
 Some textbooks give you two levers: humble and honorific language. Up, down. But native speakers cook up, index, their sense of place in five-dimensional space.
